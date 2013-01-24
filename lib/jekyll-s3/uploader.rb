@@ -1,3 +1,6 @@
+require 'tempfile'
+require 'zlib'
+
 module Jekyll
   module S3
     class Uploader
@@ -54,15 +57,42 @@ module Jekyll
       def self.upload_file(file, s3, config, site_dir)
         Retry.run_with_retry do
           mime_type = MIME::Types.type_for(file)
-          upload_succeeded = s3.buckets[config['s3_bucket']].objects[file].write(
-            File.read("#{site_dir}/#{file}"),
+          metadata = {
             :content_type => mime_type.first,
             :reduced_redundancy => config['s3_reduced_redundancy']
-          )
-          if upload_succeeded
-            puts("Upload #{file}: Success!")
+          }
+          
+          s3_object = s3.buckets[config['s3_bucket']].objects[file]
+          local_filename = "#{site_dir}/#{file}"
+          gzip = (config['gzip_extensions'] || [".html", ".css", ".js", ".svg", ".txt"]).include?(File.extname file)
+          
+          upload_succeeded = if gzip
+            Tempfile.open(File.basename(file)) do |tempfile|
+              metadata[:content_encoding] = "gzip"
+              
+              gz = Zlib::GzipWriter.new(tempfile, Zlib::BEST_COMPRESSION, Zlib::DEFAULT_STRATEGY)
+              gz.mtime = File.mtime(local_filename)
+              gz.orig_name = File.basename(file)
+              File.open(local_filename) do |f|
+                IO.copy_stream(f, gz)
+              end                
+              gz.flush
+              
+              tempfile.flush
+              tempfile.rewind
+              s3_object.write(tempfile, metadata)
+              gz.close
+            end
           else
-            puts("Upload #{file}: FAILURE!")
+            File.open(local_filename) do |f|
+              s3_object.write(f, metadata)
+            end
+          end
+          
+          if upload_succeeded
+            puts("Upload #{file}#{gzip ? " (gzipped)" : ""}: Success!")
+          else
+            puts("Upload #{file}#{gzip ? " (gzipped)" : ""}: FAILURE!")
           end
         end
       end
