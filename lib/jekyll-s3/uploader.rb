@@ -64,7 +64,7 @@ module Jekyll
           
           s3_object = s3.buckets[config['s3_bucket']].objects[file]
           local_filename = "#{site_dir}/#{file}"
-          gzip = [".html", ".css", ".js", ".svg", ".txt"].include?(File.extname file)
+          gzip = (config['gzip_extensions'] || [".html", ".css", ".js", ".svg", ".txt"]).include?(File.extname file)
           
           upload_succeeded = if gzip
             Tempfile.open(File.basename(file)) do |tempfile|

@@ -54,6 +54,16 @@ You can reduce the cost of hosting your blog on S3 by using Reduced Redundancy S
   * In `_jekyll_s3.yml`, set `s3_reduced_redundancy: true`
   * All objects uploaded after this change will use the Reduced Redundancy Storage.
   * If you want to change all of the files in the bucket, you can change them through the AWS console, or update the timestamp on the files before running `jekyll-s3` again
+  
+### Gzipping files
+
+By default, jekyll-s3 will gzip files with the extensions .html, .js, .css, .svg and .txt before uploading and then set S3 to deliver them with the Content-Encoding: gzip header.  You can change which extensions are gzipped by setting the gzip_extensions config key:
+
+    gzip_extensions:
+      - .html
+      - .css
+      - .js
+      - .tex
 
 ### How to use Cloudfront to deliver your blog
 
