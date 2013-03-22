@@ -1,3 +1,7 @@
+# Fork!
+
+In this fork, I'd like to implement distrubuted builds. This would require implementation of http://github.com/adelevie/big-processing and some simple edits to the `Uploader` class.
+
 # jekyll-s3
 
 [![Build Status](https://secure.travis-ci.org/laurilehmijoki/jekyll-s3.png)] (http://travis-ci.org/laurilehmijoki/jekyll-s3)
