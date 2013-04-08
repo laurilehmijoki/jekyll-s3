@@ -25,6 +25,6 @@ module Jekyll
           'sa-east-1'      => { :region => 'South America (Sao Paulo)',     :website_hostname => 's3-website-sa-east-1.amazonaws.com',      :endpoint => 's3-sa-east-1.amazonaws.com' }
         }
       end
-  end
+    end
   end
 end
