@@ -21,9 +21,3 @@ Feature: Using Jekyll-s3 as a library
     When my Jekyll site is in "features/support/test_site_dirs/cdn-powered.with-one-change.blog.fi"
     Then jekyll-s3 will push my blog to S3 and invalidate the Cloudfront distribution
     And report that it invalidated 2 Cloudfront item
-
-  @s3-basic-site-build
-  Scenario: Developer wants to programatically invoke the same functionality as the CLI in order to build his/her site
-    When my Jekyll site is in "features/support/test_site_dirs/basic-site-build-non-cli"
-    Then calling something like `Jekyll::S3::Uploader(...)` will upload the contents of the `_site` folder to S3
-    And report that the upload was successful
