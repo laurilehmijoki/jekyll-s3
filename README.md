@@ -24,7 +24,12 @@ s3_id: YOUR_AWS_S3_ACCESS_KEY_ID
 s3_secret: YOUR_AWS_S3_SECRET_ACCESS_KEY
 s3_bucket: your.blog.bucket.com
 </pre>
-* Edit it with your details (you can use [ERB](http://ruby-doc.org/stdlib-1.9.3/libdoc/erb/rdoc/ERB.html) in the file)
+* Edit it with your details. You can use [ERB](http://ruby-doc.org/stdlib-1.9.3/libdoc/erb/rdoc/ERB.html) in the config file to avoid committing secrets your git repository like so:
+<pre>
+s3_id: <% =ENV['S3_ID'] %>
+s3_secret: <% =ENV['S3_SECRET'] %>
+s3_bucket: your.blog.bucket.com
+</pre>
 * Run `configure-s3-website --config-file _jekyll_s3.yml` This will configure
   your bucket to function as an S3 website. If the bucket does not exist,
   `configure-s3-website` will create it for you.
