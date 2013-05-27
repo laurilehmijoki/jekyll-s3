@@ -16,14 +16,23 @@ module Jekyll
           s3, config, site_dir
         )
 
+        redirects = config['redirects'] || {}
+        changed_redirects = []
+        redirects.each do |path, target|
+          if setup_redirect(path, target, s3, config)
+            changed_redirects << path
+          end
+        end
+
         deleted_files_count = remove_superfluous_files(s3, { :s3_bucket => config['s3_bucket'],
                                                              :site_dir => site_dir,
+                                                             :redirects => redirects,
                                                              :in_headless_mode => in_headless_mode,
                                                              :ignore_on_server => config["ignore_on_server"] })
 
         print_done_report config
 
-        [new_files_count, changed_files_count, deleted_files_count, changed_files]
+        [new_files_count, changed_files_count, deleted_files_count, changed_files, changed_redirects]
       end
 
       private
@@ -69,13 +78,32 @@ module Jekyll
         end
       end
 
+      def self.setup_redirect(path, target, s3, config)
+        target = '/' + target unless target =~ %r{^(/|https?://)}
+        s3_object = s3.buckets[config['s3_bucket']].objects[path]
+
+        begin
+          current_head = s3_object.head
+        rescue AWS::S3::Errors::NoSuchKey
+        end
+
+        if current_head.nil? or current_head[:website_redirect_location] != target
+          if s3_object.write('', :website_redirect_location => target)
+            puts "Redirect #{path} to #{target}: Success!"
+          else
+            puts "Redirect #{path} to #{target}: FAILURE!"
+          end
+          true
+        end
+      end
+
       def self.remove_superfluous_files(s3, options)
         s3_bucket_name = options.fetch(:s3_bucket)
         site_dir = options.fetch(:site_dir)
         in_headless_mode = options.fetch(:in_headless_mode)
 
         remote_files = s3.buckets[s3_bucket_name].objects.map { |f| f.key }
-        local_files = load_all_local_files(site_dir)
+        local_files = load_all_local_files(site_dir) + options.fetch(:redirects).keys
         files_to_delete = build_list_of_files_to_delete(remote_files, local_files, options[:ignore_on_server])
 
 
